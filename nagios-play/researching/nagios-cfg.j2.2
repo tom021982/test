@@ -1,0 +1,74 @@
+# Host configuration file
+# #############################################################################
+
+define hostgroup {
+        hostgroup_name nclient
+
+}
+
+{% for host in groups['nclient'] %}
+
+define host {
+     host_name                  {{ host }}
+     use                        xiwizard_linuxserver_host
+     }
+
+define service {
+     host_name			{{ host }}
+     service_description        / Disk Usage
+     use                  	xiwizard_nrpe_service
+     check_command              check_nrpe!check_disk!-a '-w 20% -c 10% -p /'
+     }   
+
+define service {
+     host_name			{{ host }}
+     service_description        CPU Stats
+     use                  	xiwizard_nrpe_service
+     check_command              check_nrpe!check_cpu_stats!-a '-w 85 -c 95'
+     }   
+ 
+define service {
+     host_name			{{ host }}
+     service_description        Load
+     use                  	xiwizard_nrpe_service
+     check_command              check_nrpe!check_load!-a '-w 15,10,5 -c 30,20,10'
+     }   
+ 
+define service {
+     host_name			{{ host }}
+     service_description        Memory Usage
+     use                  	xiwizard_nrpe_service
+     check_command              check_nrpe!check_mem!-a '-w 20 -c 10'
+     }   
+ 
+define service {
+     host_name			{{ host }}
+     service_description        Ping
+     use                  	xiwizard_linuxserver_ping_service
+     }   
+ 
+define service {
+     host_name			{{ host }}
+     service_description        SSH Server
+     use                  	xiwizard_nrpe_service
+     check_command              check_nrpe!check_init_service!-a 'sshd'
+     }   
+ 
+define service {
+     host_name			{{ host }}
+     service_description        Swap Usage
+     use                  	xiwizard_nrpe_service
+     check_command              check_nrpe!check_swap!-a '-w 50% -c 20%'
+     }   
+ 
+define service {
+     host_name			{{ host }}
+     service_description        Total Processes
+     use                  	xiwizard_nrpe_service
+     check_command              check_nrpe!check_procs!-a '-w 200 -c 250'
+     }   
+
+
+{% endfor %}
+
+###############################################################################

@@ -1,0 +1,40 @@
+---
+- name: Playbook for configuring nagios server
+  hosts: nagios-server
+  remote_user: root
+  tasks:
+  - name: Extract xi-5.4.11.tar.gz to /home
+    unarchive:
+      dest: /home
+      src: xi-5.4.11.tar.gz
+ 
+  - name: Run script fullinstall
+    command: ./fullinstall -n
+    args:
+      chdir: /home/nagiosxi 
+
+###################################################
+
+  - name: Copy nagios.cfg file to import directory
+    copy: 
+      src: nagios.cfg
+      dest: /usr/local/nagios/etc/import/nagios.cfg 
+      owner: nagios 
+      group: nagios 
+      mode: 755
+
+  - name: Reconfigure nagios for client integration
+    command: /usr/local/nagiosxi/scripts/reconfigure_nagios.sh
+    args:
+      chdir: /usr/local/nagiosxi/scripts/
+
+  - name: Create nagiosadmin user password
+    shell: htpasswd -cb /usr/local/nagiosxi/etc/htpasswd.users nagiosadmin nagios
+
+  - name: Restart nagios on server to use new configuration
+    service: 
+      name: nagios 
+      state: restarted
+  
+
+

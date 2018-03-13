@@ -1,0 +1,42 @@
+---
+  - name: this playbook is for configuring nagios client(s)
+    hosts: nagios-client
+    
+    vars:
+      nagios_server: 192.168.56.101
+
+    tasks:
+      - name: Copy CentOS package from nagios server to {{ansible_hostname}}
+        local_action: command scp /root/myansible/nagios-play/linux-nrpe-agent.tar.gz root@{{inventory_hostname}}:/tmp/
+
+      - name: Extract linux-nrpe-agent.tar.gz to /tmp directory
+        unarchive:
+          src: /tmp/linux-nrpe-agent.tar.gz
+          dest: /tmp/
+          remote_src: yes
+
+      - name: Run script fullinstall
+        command: ./fullinstall --non-interactive
+        args:
+          chdir: /tmp/linux-nrpe-agent/
+
+      - name: Add nagios server IP in client machine
+        template:
+          src: /root/myansible/nagios-play/serverIP.j2
+          dest: /etc/xinetd.d/nrpe
+      
+      - name: start and enable xinetd service
+        service: name=xinetd state=restarted enabled=yes
+   
+#      - name: enter nagios-server IP in nrpe config file
+#        lineinfile: 
+#          dest: /etc/xinetd.d/nrpe
+#          regexp: '^only_from='
+#          insertafter: '^only_from=127.0.0.1'
+#          line: only_from=127.0.0.1 {{nagios_server}} 
+#      - name: testing
+#        replace:
+#          path: /etc/xinetd/nrpe
+#          regexp: nrpe.only_from = 127.0.0.1
+#          replace: nrpe.only_from = 127.0.0.1 192.168.56.101
+
